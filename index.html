@@ -14,18 +14,24 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      justify-content: flex-start;
+      padding-top: 30px;
     }
     .stock {
       width: 95vw;
-      max-width: 400px;
-      margin: 20px auto;
+      max-width: 420px;
+      margin-bottom: 40px;
     }
     canvas {
       background: #1a1a1a;
       border-radius: 12px;
       padding: 10px;
+    }
+    h2 {
+      margin: 0 0 10px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.1rem;
     }
   </style>
 </head>
@@ -44,27 +50,28 @@
   </div>
 
   <script>
-    const apiKey = 'uWGmeTTuc51qtDXOnmujrQDpVbGvhAyu';
-    const interval = 1 * 60 * 1000; // 1 minute updates
+    const apiKey = "uWGmeTTuc51qtDXOnmujrQDpVbGvhAyu"; // <-- Replace with your actual key
+    const interval = 60 * 1000; // 1-minute refresh
 
     const stocks = [
-      { symbol: '^GSPC', chartId: 'spChart', data: [] },
-      { symbol: '^NDX', chartId: 'nasdaqChart', data: [] },
-      { symbol: '^DJI', chartId: 'dowChart', data: [] },
+      { symbol: "^GSPC", chartId: "spChart", data: [] },
+      { symbol: "^NDX", chartId: "nasdaqChart", data: [] },
+      { symbol: "^DJI", chartId: "dowChart", data: [] },
     ];
 
     const charts = {};
 
     function createChart(ctx) {
       return new Chart(ctx, {
-        type: 'line',
+        type: "line",
         data: {
           labels: [],
           datasets: [{
-            label: 'Price',
+            label: "Price",
             data: [],
             fill: false,
-            tension: 0.1,
+            tension: 0.2,
+            borderColor: "#4fc3f7",
             borderWidth: 2,
             pointRadius: 0
           }]
@@ -82,17 +89,21 @@
     }
 
     async function fetchPrice(symbol) {
-      const res = await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${apiKey}`);
-      const json = await res.json();
-      return json[0]?.price;
+      try {
+        const res = await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${apiKey}`);
+        const json = await res.json();
+        return json[0]?.price;
+      } catch (e) {
+        console.error("API error for", symbol, e);
+        return null;
+      }
     }
 
     async function updateData() {
       const now = new Date();
+      const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
       for (const stock of stocks) {
         const price = await fetchPrice(stock.symbol);
-        const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-
         if (price) {
           stock.data.push({ x: time, y: price });
           const chart = charts[stock.chartId];
@@ -105,7 +116,7 @@
 
     function init() {
       for (const stock of stocks) {
-        const ctx = document.getElementById(stock.chartId).getContext('2d');
+        const ctx = document.getElementById(stock.chartId).getContext("2d");
         charts[stock.chartId] = createChart(ctx);
       }
       updateData();
@@ -116,3 +127,4 @@
   </script>
 </body>
 </html>
+
