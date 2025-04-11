@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Live Stock Widget</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -17,7 +17,7 @@
       padding: 20px;
     }
     .stock {
-      width: 100%;
+      width: 95vw;
       max-width: 400px;
       margin: 20px auto;
     }
@@ -44,7 +44,7 @@
 
   <script>
     const apiKey = 'uWGmeTTuc51qtDXOnmujrQDpVbGvhAyu';
-    const interval = 1 * 60 * 1000; // 1 minute
+    const interval = 1 * 60 * 1000;
 
     const stocks = [
       { symbol: 'SPY', chartId: 'spChart', data: [], color: 'gray' },
@@ -86,7 +86,7 @@
         const json = await res.json();
         return json[0];
       } catch (err) {
-        console.error("API error", err);
+        console.error('API error', err);
         return null;
       }
     }
@@ -94,12 +94,11 @@
     async function updateData() {
       const now = new Date();
       const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-
       for (const stock of stocks) {
         const data = await fetchPrice(stock.symbol);
         if (data && data.price) {
           const chart = charts[stock.chartId];
-          const prev = stock.data.length > 0 ? stock.data[stock.data.length - 1].y : data.price;
+          const prev = stock.data[stock.data.length - 1]?.y ?? data.price;
           const newColor = data.price >= prev ? 'lime' : 'red';
           chart.data.labels.push(time);
           chart.data.datasets[0].data.push(data.price);
