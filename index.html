@@ -1,24 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Celeste Avant – Stock Widget</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Celeste Avant – Stocks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    h1 {
+      font-weight: 600;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #111;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 30px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    }
+    .stock-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .ticker {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .change {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .green { color: #00ff94; }
+    .red { color: #ff5b5b; }
+    canvas {
+      width: 100% !important;
+      height: 60px !important;
+    }
+  </style>
 </head>
 <body>
-  <div class="widget">
-    <h1 class="title">Stock Overview</h1>
-    <div class="chart">
-      <svg viewBox="0 0 300 100" preserveAspectRatio="none">
-        <path d="M0,80 C50,30 150,10 300,40" class="line" />
-      </svg>
+  <h1>Stock Overview</h1>
+
+  <div class="card">
+    <div class="stock-header">
+      <div class="ticker">S&P 500</div>
+      <div class="change green">+1.34%</div>
     </div>
-    <div class="tickers">
-      <div class="ticker"><span>S&P 500</span><span class="up">+1.34%</span></div>
-      <div class="ticker"><span>NASDAQ</span><span class="down">-0.45%</span></div>
-      <div class="ticker"><span>DOW</span><span class="up">+0.22%</span></div>
-    </div>
+    <canvas id="chart1"></canvas>
   </div>
+
+  <div class="card">
+    <div class="stock-header">
+      <div class="ticker">NASDAQ</div>
+      <div class="change red">-0.45%</div>
+    </div>
+    <canvas id="chart2"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="stock-header">
+      <div class="ticker">DOW</div>
+      <div class="change green">+0.22%</div>
+    </div>
+    <canvas id="chart3"></canvas>
+  </div>
+
+  <script>
+    const chartConfig = (ctx, data, borderColor) => new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map((_, i) => i + 1),
+        datasets: [{
+          data,
+          borderColor,
+          borderWidth: 2,
+          fill: false,
+          tension: 0.3,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { display: false },
+          y: { display: false }
+        }
+      }
+    });
+
+    chartConfig(document.getElementById('chart1'), [4200, 4250, 4300, 4280, 4350], '#00ff94');
+    chartConfig(document.getElementById('chart2'), [13000, 12800, 12900, 12750, 12830], '#ff5b5b');
+    chartConfig(document.getElementById('chart3'), [33500, 33600, 33700, 33750, 33800], '#00ff94');
+  </script>
 </body>
 </html>
