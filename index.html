@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stocks Widget</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="card">
+    <h2>Stock Overview</h2>
+    <canvas id="stockChart"></canvas>
+    <div class="prices">
+      <div><strong>S&P 500:</strong> 4,243.40</div>
+      <div><strong>Dow:</strong> 33,672.50</div>
+      <div><strong>Nasdaq:</strong> 13,463.97</div>
+    </div>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('stockChart');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['9AM', '10AM', '11AM', '12PM', '1PM'],
+        datasets: [{
+          label: 'S&P 500',
+          data: [4210, 4230, 4240, 4245, 4243],
+          borderColor: 'rgba(0, 150, 255, 0.9)',
+          tension: 0.4
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { display: false },
+          y: { display: false }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

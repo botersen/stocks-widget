@@ -1,0 +1,21 @@
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #111;
+  color: white;
+}
+
+.card {
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+.prices {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #ccc;
+}
