@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Stock Widget</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #0f0f0f;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .stock {
+      width: 95vw;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+    canvas {
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="stock">
+    <h2>S&P 500 (SPY)</h2>
+    <canvas id="spChart"></canvas>
+  </div>
+  <div class="stock">
+    <h2>Nasdaq 100 (QQQ)</h2>
+    <canvas id="nasdaqChart"></canvas>
+  </div>
+  <div class="stock">
+    <h2>Dow Jones (DIA)</h2>
+    <canvas id="dowChart"></canvas>
+  </div>
+
+  <script>
+    const apiKey = 'uWGmeTTuc51qtDXOnmujrQDpVbGvhAyu';
+    const interval = 1 * 60 * 1000;
+
+    const stocks = [
+      { symbol: 'SPY', chartId: 'spChart', data: [], color: 'gray' },
+      { symbol: 'QQQ', chartId: 'nasdaqChart', data: [], color: 'gray' },
+      { symbol: 'DIA', chartId: 'dowChart', data: [], color: 'gray' },
+    ];
+
+    const charts = {};
+
+    function createChart(ctx, color) {
+      return new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            borderColor: color,
+            fill: false,
+            tension: 0.2,
+            borderWidth: 2,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          animation: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { display: true },
+            y: { display: true }
+          }
+        }
+      });
+    }
+
+    async function fetchPrice(symbol) {
+      try {
+        const res = await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${apiKey}`);
+        const json = await res.json();
+        return json[0];
+      } catch (err) {
+        console.error('API error', err);
+        return null;
+      }
+    }
+
+    async function updateData() {
+      const now = new Date();
+      const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+      for (const stock of stocks) {
+        const data = await fetchPrice(stock.symbol);
+        if (data && data.price) {
+          const chart = charts[stock.chartId];
+          const prev = stock.data[stock.data.length - 1]?.y ?? data.price;
+          const newColor = data.price >= prev ? 'lime' : 'red';
+          chart.data.labels.push(time);
+          chart.data.datasets[0].data.push(data.price);
+          chart.data.datasets[0].borderColor = newColor;
+          stock.data.push({ x: time, y: data.price });
+          chart.update();
+        }
+      }
+    }
+
+    function init() {
+      for (const stock of stocks) {
+        const ctx = document.getElementById(stock.chartId).getContext('2d');
+        charts[stock.chartId] = createChart(ctx, stock.color);
+      }
+      updateData();
+      setInterval(updateData, interval);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
