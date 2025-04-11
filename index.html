@@ -1,44 +1,24 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Stocks Widget</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Celeste Avant – Stock Widget</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="card">
-    <h2>Stock Overview</h2>
-    <canvas id="stockChart"></canvas>
-    <div class="prices">
-      <div><strong>S&P 500:</strong> 4,243.40</div>
-      <div><strong>Dow:</strong> 33,672.50</div>
-      <div><strong>Nasdaq:</strong> 13,463.97</div>
+  <div class="widget">
+    <h1 class="title">Stock Overview</h1>
+    <div class="chart">
+      <svg viewBox="0 0 300 100" preserveAspectRatio="none">
+        <path d="M0,80 C50,30 150,10 300,40" class="line" />
+      </svg>
+    </div>
+    <div class="tickers">
+      <div class="ticker"><span>S&P 500</span><span class="up">+1.34%</span></div>
+      <div class="ticker"><span>NASDAQ</span><span class="down">-0.45%</span></div>
+      <div class="ticker"><span>DOW</span><span class="up">+0.22%</span></div>
     </div>
   </div>
-
-  <script>
-    const ctx = document.getElementById('stockChart');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['9AM', '10AM', '11AM', '12PM', '1PM'],
-        datasets: [{
-          label: 'S&P 500',
-          data: [4210, 4230, 4240, 4245, 4243],
-          borderColor: 'rgba(0, 150, 255, 0.9)',
-          tension: 0.4
-        }]
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { display: false },
-          y: { display: false }
-        }
-      }
-    });
-  </script>
 </body>
 </html>
