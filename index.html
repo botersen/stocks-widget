@@ -127,3 +127,79 @@
 </html>
 
 
+  <script>
+    const API_KEY = 'uWGmeTTuc51qtDXOnmujrQDpVbGvhAyu';
+    const symbols = [
+      { symbol: 'SPY', label: 'S&P 500' },
+      { symbol: 'QQQ', label: 'NASDAQ' },
+      { symbol: 'DIA', label: 'DOW' },
+    ];
+
+    async function fetchStock(symbol) {
+      const url = `https://financialmodelingprep.com/api/v3/historical-chart/5min/${symbol}?apikey=${API_KEY}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.slice(0, 24).reverse();
+    }
+
+    function renderStockCard(symbol, label, data) {
+      const container = document.createElement('div');
+      container.className = 'card';
+      const last = data[data.length - 1].close;
+      const first = data[0].close;
+      const change = (((last - first) / first) * 100).toFixed(2);
+
+      const color = change >= 0 ? '#4CAF50' : '#FF5252';
+
+      container.innerHTML = `
+        <div class="stock-title">
+          <span>${label}</span>
+          <span class="price-change" style="color:${color}">${change}%</span>
+        </div>
+        <canvas id="chart-${symbol}"></canvas>
+      `;
+
+      document.getElementById('stocks').appendChild(container);
+
+      const ctx = document.getElementById(`chart-${symbol}`).getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(d => d.label),
+          datasets: [{
+            data: data.map(d => d.close),
+            borderColor: color,
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { display: false },
+            y: { display: false }
+          },
+        }
+      });
+    }
+
+    async function renderAll() {
+      for (let s of symbols) {
+        try {
+          const data = await fetchStock(s.symbol);
+          renderStockCard(s.symbol, s.label, data);
+        } catch (e) {
+          console.error(`Error fetching data for ${s.symbol}`, e);
+        }
+      }
+    }
+
+    renderAll();
+    setInterval(renderAll, 300000); // every 5 minutes
+  </script>
+</body>
+</html>
+
+
