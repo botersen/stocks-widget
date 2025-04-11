@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Widget</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #0f0f0f;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+    }
+    .widget {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 10px 15px;
+      margin: 10px 0;
+      width: 95%;
+      max-width: 400px;
+    }
+    .label {
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .price {
+      font-size: 14px;
+    }
+    .chart-container {
+      width: 120px;
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="widget">
+  <div class="label">S&P 500</div>
+  <div class="chart-container"><canvas id="spyChart"></canvas></div>
+  <div class="price" id="spyPrice">--</div>
+</div>
+
+<div class="widget">
+  <div class="label">NASDAQ</div>
+  <div class="chart-container"><canvas id="qqqChart"></canvas></div>
+  <div class="price" id="qqqPrice">--</div>
+</div>
+
+<div class="widget">
+  <div class="label">DOW</div>
+  <div class="chart-container"><canvas id="diaChart"></canvas></div>
+  <div class="price" id="diaPrice">--</div>
+</div>
+
+<script>
+  const apiKey = 'uWGmeTTuc51qtDXOnmujrQDpVbGvhAyu';
+  const symbols = [
+    { symbol: 'SPY', chartId: 'spyChart', priceId: 'spyPrice' },
+    { symbol: 'QQQ', chartId: 'qqqChart', priceId: 'qqqPrice' },
+    { symbol: 'DIA', chartId: 'diaChart', priceId: 'diaPrice' },
+  ];
+
+  async function loadChart(symbolObj) {
+    const {"symbol": symbol, "chartId": chartId, "priceId": priceId} = symbolObj;
+    const url = `https://financialmodelingprep.com/api/v3/historical-chart/1min/${symbol}?apikey=${apiKey}`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+
+      const today = new Date().toISOString().split('T')[0];
+      const filtered = data.filter(d => d.date.startsWith(today)).reverse();
+
+      const prices = filtered.map(d => d.close);
+      const labels = filtered.map(d => d.date.split(' ')[1].slice(0, 5));
+
+      const latestPrice = prices[prices.length - 1];
+      const firstPrice = prices[0];
+      const color = latestPrice >= firstPrice ? 'lime' : 'red';
+
+      document.getElementById(priceId).innerText = latestPrice.toFixed(2);
+
+      const ctx = document.getElementById(chartId).getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: prices,
+            borderColor: color,
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.2
+          }]
+        },
+        options: {
+          responsive: false,
+          animation: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: { display: false },
+            y: { display: false }
+          }
+        }
+      });
+    } catch (e) {
+      document.getElementById(priceId).innerText = 'Err';
+      console.error('Error loading data for', symbol, e);
+    }
+  }
+
+  symbols.forEach(loadChart);
+</script>
+</body>
+</html>
