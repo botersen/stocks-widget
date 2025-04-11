@@ -1,112 +1,77 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stock Widget</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <title>Live Stock Widget</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
-      background-color: #0d0d0d;
+      background: #0f0f0f;
       color: #fff;
+      font-family: sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem;
+      justify-content: center;
+      height: 100vh;
     }
-
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin-bottom: 2rem;
-    }
-
-    .stock-card {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 18px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-      padding: 1rem 1.5rem;
-      margin-bottom: 1.5rem;
-      width: 90%;
+    .stock {
+      width: 95vw;
       max-width: 400px;
-      display: flex;
-      flex-direction: column;
+      margin: 20px auto;
     }
-
-    .stock-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-    }
-
-    .change {
-      font-weight: 500;
-    }
-
     canvas {
-      height: 50px;
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Stock Overview</h1>
-  <div class="stock-card">
-    <div class="stock-header">
-      <span>S&amp;P 500</span>
-      <span id="change-spx" class="change">Loading...</span>
-    </div>
-    <canvas id="chart-spx"></canvas>
+  <div class="stock">
+    <h2>S&P 500</h2>
+    <canvas id="spChart"></canvas>
   </div>
-  <div class="stock-card">
-    <div class="stock-header">
-      <span>NASDAQ</span>
-      <span id="change-ixic" class="change">Loading...</span>
-    </div>
-    <canvas id="chart-ixic"></canvas>
+  <div class="stock">
+    <h2>Nasdaq 100</h2>
+    <canvas id="nasdaqChart"></canvas>
   </div>
-  <div class="stock-card">
-    <div class="stock-header">
-      <span>DOW</span>
-      <span id="change-dji" class="change">Loading...</span>
-    </div>
-    <canvas id="chart-dji"></canvas>
+  <div class="stock">
+    <h2>Dow Jones</h2>
+    <canvas id="dowChart"></canvas>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const apiKey = 'uWGmeTTuc51qtDXOnmujrQDpVbGvhAyu'; // Replace with your actual key
-    const indexes = [
-      { symbol: '^GSPC', id: 'spx' },
-      { symbol: '^IXIC', id: 'ixic' },
-      { symbol: '^DJI', id: 'dji' }
+    const apiKey = 'uWGmeTTuc51qtDXOnmujrQDpVbGvhAyu';
+    const interval = 1 * 60 * 1000; // 1 minute updates
+
+    const stocks = [
+      { symbol: '^GSPC', chartId: 'spChart', data: [] },
+      { symbol: '^NDX', chartId: 'nasdaqChart', data: [] },
+      { symbol: '^DJI', chartId: 'dowChart', data: [] },
     ];
 
-    async function fetchData(symbol) {
-      const res = await fetch(`https://financialmodelingprep.com/api/v3/historical-chart/1min/${symbol}?apikey=${apiKey}`);
-      const data = await res.json();
-      return data.reverse().slice(0, 30);
-    }
+    const charts = {};
 
-    function renderChart(canvasId, labels, values, color) {
-      new Chart(document.getElementById(`chart-${canvasId}`), {
+    function createChart(ctx) {
+      return new Chart(ctx, {
         type: 'line',
         data: {
-          labels: labels,
+          labels: [],
           datasets: [{
-            data: values,
-            borderColor: color,
-            borderWidth: 2,
+            label: 'Price',
+            data: [],
             fill: false,
-            tension: 0.4,
-            pointRadius: 0,
+            tension: 0.1,
+            borderWidth: 2,
+            pointRadius: 0
           }]
         },
         options: {
           responsive: true,
+          animation: false,
           plugins: { legend: { display: false } },
           scales: {
             x: { display: false },
@@ -116,24 +81,38 @@
       });
     }
 
-    async function init() {
-      for (const index of indexes) {
-        const data = await fetchData(index.symbol);
-        const prices = data.map(d => parseFloat(d.close));
-        const labels = data.map(d => d.datetime.slice(11, 16));
-        const change = ((prices.at(-1) - prices[0]) / prices[0]) * 100;
-        const color = change >= 0 ? '#00FF88' : '#FF4E4E';
-        document.getElementById(`change-${index.id}`).textContent = `${change.toFixed(2)}%`;
-        document.getElementById(`change-${index.id}`).style.color = color;
-        renderChart(index.id, labels, prices, color);
+    async function fetchPrice(symbol) {
+      const res = await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${apiKey}`);
+      const json = await res.json();
+      return json[0]?.price;
+    }
+
+    async function updateData() {
+      const now = new Date();
+      for (const stock of stocks) {
+        const price = await fetchPrice(stock.symbol);
+        const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        if (price) {
+          stock.data.push({ x: time, y: price });
+          const chart = charts[stock.chartId];
+          chart.data.labels.push(time);
+          chart.data.datasets[0].data.push(price);
+          chart.update();
+        }
       }
     }
 
-    init();
+    function init() {
+      for (const stock of stocks) {
+        const ctx = document.getElementById(stock.chartId).getContext('2d');
+        charts[stock.chartId] = createChart(ctx);
+      }
+      updateData();
+      setInterval(updateData, interval);
+    }
+
+    window.onload = init;
   </script>
 </body>
 </html>
-
-
-Successfully created text document 'Apple Stock Widget' which will be referenced in all future messages with the unique identifier textdoc_id: '67f953d670788191958e3c1ee9967c9a'
-
